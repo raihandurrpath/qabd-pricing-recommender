@@ -35,7 +35,7 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-APP_VERSION = "v2.1.0"
+APP_VERSION = "v2.1.1"
 LAST_UPDATED = "2026-06-11"
 DATA_PATH = Path(__file__).with_name("df_preprocessed.csv")
 
@@ -101,10 +101,20 @@ st.markdown(
         background: var(--light-bg);
     }
 
+    /* Keep the page header clear of Streamlit's top toolbar. */
     .block-container {
-        padding-top: 1.25rem;
+        padding-top: 4.5rem !important;
         padding-bottom: 2.25rem;
         max-width: 1480px;
+    }
+
+    /* Add a small safety gap when the Streamlit toolbar is expanded. */
+    header[data-testid="stHeader"] {
+        background: rgba(245, 247, 251, 0.92);
+    }
+
+    div[data-testid="stAppViewContainer"] > .main {
+        overflow: visible;
     }
 
     section[data-testid="stSidebar"] {
@@ -124,9 +134,11 @@ st.markdown(
         color: #172033;
         font-size: 2.45rem;
         font-weight: 800;
-        line-height: 1.1;
+        line-height: 1.18;
         margin: 0 0 0.3rem 0;
+        padding-top: 0.1rem;
         letter-spacing: -0.035rem;
+        overflow: visible;
     }
 
     .page-subtitle {
