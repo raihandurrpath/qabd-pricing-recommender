@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from html import escape
 from pathlib import Path
 from typing import Dict, List, Tuple
 
@@ -36,7 +35,7 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-APP_VERSION = "v2.0.0"
+APP_VERSION = "v2.1.0"
 LAST_UPDATED = "2026-06-11"
 DATA_PATH = Path(__file__).with_name("df_preprocessed.csv")
 
@@ -58,249 +57,243 @@ MODEL_FEATURES = [
     "price_gap_avg_competitor_pct",
     "price_gap_min_competitor_pct",
 ]
-
 NUMERIC_FEATURES = [feature for feature in MODEL_FEATURES if feature != "product"]
 CATEGORICAL_FEATURES = ["product"]
 
-# Color palette used consistently throughout the dashboard.
-COLORS = {
-    "navy": "#1D3557",
-    "blue": "#2563EB",
-    "sky": "#38BDF8",
-    "teal": "#14B8A6",
-    "green": "#22C55E",
-    "amber": "#F59E0B",
-    "orange": "#F97316",
-    "red": "#EF4444",
-    "purple": "#8B5CF6",
-    "slate": "#64748B",
-    "light_blue": "#EFF6FF",
-    "light_slate": "#F8FAFC",
-}
+# Color system
+NAVY = "#172033"
+BLUE = "#2563EB"
+SKY = "#0EA5E9"
+TEAL = "#14B8A6"
+GREEN = "#22C55E"
+AMBER = "#F59E0B"
+ORANGE = "#F97316"
+RED = "#EF4444"
+PURPLE = "#7C3AED"
+SLATE = "#64748B"
+LIGHT_BG = "#F5F7FB"
+CARD_BG = "#FFFFFF"
+
 
 # =============================================================================
-# GLOBAL CSS
+# GLOBAL UI STYLE
 # =============================================================================
 st.markdown(
     """
     <style>
     :root {
-        --navy: #1D3557;
+        --navy: #172033;
         --blue: #2563EB;
+        --sky: #0EA5E9;
         --teal: #14B8A6;
         --green: #22C55E;
         --amber: #F59E0B;
+        --orange: #F97316;
         --red: #EF4444;
-        --purple: #8B5CF6;
+        --purple: #7C3AED;
         --slate: #64748B;
-        --text-dark: #172033;
-        --text-muted: #667085;
-        --border: #E5E7EB;
-        --soft-bg: #F7F9FC;
+        --light-bg: #F5F7FB;
+        --card-bg: #FFFFFF;
+        --soft-border: #E4E7EC;
     }
 
     .stApp {
-        background: #F5F7FB;
+        background: var(--light-bg);
     }
 
     .block-container {
-        max-width: 1500px;
-        padding-top: 1.15rem;
-        padding-bottom: 2.5rem;
+        padding-top: 1.25rem;
+        padding-bottom: 2.25rem;
+        max-width: 1480px;
     }
 
-    /* Sidebar */
     section[data-testid="stSidebar"] {
-        background: linear-gradient(180deg, #1D3557 0%, #274C77 100%);
+        background: linear-gradient(180deg, #172554 0%, #1E3A8A 100%);
+        border-right: 0;
     }
 
     section[data-testid="stSidebar"] * {
-        color: #FFFFFF;
+        color: #F8FAFC;
     }
 
     section[data-testid="stSidebar"] div[role="radiogroup"] label {
-        border-radius: 10px;
-        padding: 0.35rem 0.45rem;
-        margin-bottom: 0.18rem;
+        padding: 0.3rem 0.2rem;
     }
 
-    section[data-testid="stSidebar"] div[role="radiogroup"] label:hover {
-        background: rgba(255, 255, 255, 0.11);
-    }
-
-    /* Main typography */
     .page-title {
-        margin: 0;
         color: #172033;
-        font-size: 2.35rem;
+        font-size: 2.45rem;
         font-weight: 800;
-        line-height: 1.08;
-        letter-spacing: -0.04em;
+        line-height: 1.1;
+        margin: 0 0 0.3rem 0;
+        letter-spacing: -0.035rem;
     }
 
     .page-subtitle {
-        margin-top: 0.42rem;
-        margin-bottom: 1rem;
         color: #667085;
         font-size: 0.98rem;
-        line-height: 1.55;
-    }
-
-    .eyebrow {
-        display: inline-block;
-        margin-bottom: 0.32rem;
-        color: #2563EB;
-        font-size: 0.74rem;
-        font-weight: 800;
-        letter-spacing: 0.11em;
-        text-transform: uppercase;
+        margin-bottom: 1rem;
     }
 
     .section-title {
         color: #172033;
-        font-size: 1.22rem;
+        font-size: 1.2rem;
         font-weight: 800;
-        margin: 0.05rem 0 0.15rem 0;
+        margin: 0 0 0.15rem 0;
     }
 
-    .section-subtitle {
+    .section-caption {
         color: #667085;
-        font-size: 0.91rem;
-        line-height: 1.48;
-        margin-bottom: 0.62rem;
+        font-size: 0.9rem;
+        margin: 0 0 0.7rem 0;
     }
 
-    /* Streamlit bordered containers */
-    div[data-testid="stVerticalBlockBorderWrapper"] {
-        background: rgba(255, 255, 255, 0.98);
-        border: 1px solid #E6EAF0 !important;
-        border-radius: 18px !important;
-        box-shadow: 0 8px 20px rgba(16, 24, 40, 0.045);
-        padding: 0.35rem 0.4rem;
-    }
-
-    /* Custom KPI cards */
     .metric-card {
-        min-height: 116px;
-        border: 1px solid #E6EAF0;
-        border-radius: 16px;
-        padding: 0.95rem 1rem;
-        background: linear-gradient(145deg, #FFFFFF 0%, #FBFDFF 100%);
-        box-shadow: 0 5px 14px rgba(16, 24, 40, 0.035);
+        background: linear-gradient(135deg, #FFFFFF 0%, #F8FAFC 100%);
+        border: 1px solid #E4E7EC;
+        border-top: 4px solid var(--accent, #2563EB);
+        border-radius: 18px;
+        box-shadow: 0 4px 14px rgba(16, 24, 40, 0.045);
+        padding: 0.9rem 1rem 0.85rem 1rem;
+        min-height: 126px;
+        margin-bottom: 0.3rem;
+    }
+
+    .metric-card.compact {
+        min-height: 108px;
     }
 
     .metric-topline {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        gap: 0.4rem;
+        margin-bottom: 0.35rem;
     }
 
     .metric-label {
         color: #667085;
-        font-size: 0.82rem;
+        font-size: 0.84rem;
         font-weight: 700;
-        line-height: 1.25;
     }
 
     .metric-icon {
-        width: 30px;
-        height: 30px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 10px;
+        background: #EEF4FF;
+        border-radius: 11px;
+        padding: 0.35rem 0.5rem;
         font-size: 1rem;
-        background: #EFF6FF;
     }
 
     .metric-value {
-        margin-top: 0.55rem;
-        color: #172033;
+        color: #101828;
         font-size: 1.8rem;
-        font-weight: 850;
-        letter-spacing: -0.035em;
-        line-height: 1;
+        font-weight: 800;
+        line-height: 1.12;
     }
 
     .metric-footnote {
-        margin-top: 0.48rem;
         color: #667085;
-        font-size: 0.76rem;
+        font-size: 0.78rem;
         line-height: 1.35;
+        margin-top: 0.45rem;
     }
 
-    .accent-blue {border-top: 4px solid #2563EB;}
-    .accent-teal {border-top: 4px solid #14B8A6;}
-    .accent-green {border-top: 4px solid #22C55E;}
-    .accent-purple {border-top: 4px solid #8B5CF6;}
-    .accent-amber {border-top: 4px solid #F59E0B;}
-    .accent-red {border-top: 4px solid #EF4444;}
-    .accent-slate {border-top: 4px solid #64748B;}
+    .group-title {
+        display: inline-block;
+        font-size: 1.02rem;
+        font-weight: 800;
+        color: #172033;
+        margin-bottom: 0.1rem;
+    }
+
+    .group-caption {
+        color: #667085;
+        font-size: 0.84rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .pill {
+        display: inline-block;
+        border-radius: 999px;
+        padding: 0.22rem 0.62rem;
+        font-size: 0.74rem;
+        font-weight: 700;
+        margin-bottom: 0.45rem;
+    }
+
+    .pill-blue { background: #DBEAFE; color: #1D4ED8; }
+    .pill-green { background: #DCFCE7; color: #15803D; }
+    .pill-purple { background: #EDE9FE; color: #6D28D9; }
+    .pill-amber { background: #FEF3C7; color: #B45309; }
 
     .insight-box {
-        border-left: 5px solid #2563EB;
-        border-radius: 12px;
         background: #EFF6FF;
-        color: #1E3A8A;
-        padding: 0.88rem 1rem;
-        font-size: 0.9rem;
-        line-height: 1.48;
+        border-left: 5px solid #2563EB;
+        border-radius: 14px;
+        color: #1D4ED8;
+        font-size: 0.91rem;
+        line-height: 1.5;
+        padding: 0.85rem 1rem;
+        margin: 0.65rem 0;
     }
 
-    .note-card {
-        border: 1px solid #E6EAF0;
-        border-radius: 14px;
-        background: #FBFCFE;
-        padding: 0.86rem 0.92rem;
+    .soft-box {
+        background: #F8FAFC;
+        border: 1px solid #E4E7EC;
+        border-radius: 16px;
+        padding: 0.85rem 1rem;
+        margin-bottom: 0.55rem;
+    }
+
+    .soft-box ul, .soft-box ol {
+        padding-left: 1.1rem;
+        margin: 0.2rem 0 0.1rem 0;
+    }
+
+    .soft-box li {
         color: #475467;
         font-size: 0.88rem;
-        line-height: 1.5;
+        line-height: 1.45;
+        margin-bottom: 0.3rem;
     }
 
-    .note-card ul,
-    .note-card ol {
-        margin-bottom: 0.15rem;
-        padding-left: 1.3rem;
-    }
-
-    .note-card li {
-        margin-bottom: 0.42rem;
-    }
-
-    .review-flag {
-        border-radius: 13px;
-        padding: 0.78rem 0.9rem;
-        margin-bottom: 0.56rem;
+    .risk-card {
         background: #FFFFFF;
-        border: 1px solid #E6EAF0;
-        font-size: 0.88rem;
+        border: 1px solid #E4E7EC;
+        border-left: 5px solid var(--risk-color, #64748B);
+        border-radius: 14px;
+        padding: 0.7rem 0.9rem;
+        margin-bottom: 0.55rem;
+    }
+
+    .risk-card b { color: #172033; }
+    .risk-card span { color: #667085; font-size: 0.86rem; }
+
+    .sidebar-badge {
+        background: rgba(255, 255, 255, 0.12);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        border-radius: 12px;
+        padding: 0.55rem 0.7rem;
+        color: #F8FAFC;
+        font-size: 0.78rem;
         line-height: 1.45;
     }
 
-    .risk-high {border-left: 5px solid #EF4444;}
-    .risk-medium {border-left: 5px solid #F59E0B;}
-    .risk-low {border-left: 5px solid #22C55E;}
-
-    .small-note {
-        color: #667085;
-        font-size: 0.82rem;
-        line-height: 1.42;
+    div[data-testid="stMetric"] {
+        background: #FFFFFF;
+        border: 1px solid #E4E7EC;
+        border-radius: 14px;
+        padding: 0.7rem 0.8rem;
     }
 
     div[data-testid="stDataFrame"] {
-        border-radius: 12px;
+        border-radius: 14px;
         overflow: hidden;
     }
 
-    .stTabs [data-baseweb="tab-list"] {
-        gap: 0.4rem;
-    }
-
-    .stTabs [data-baseweb="tab"] {
-        border-radius: 10px;
-        padding-left: 0.85rem;
-        padding-right: 0.85rem;
+    div[data-testid="stVerticalBlockBorderWrapper"] {
+        background: #FFFFFF;
+        border-radius: 18px;
+        box-shadow: 0 4px 14px rgba(16, 24, 40, 0.04);
     }
     </style>
     """,
@@ -309,23 +302,21 @@ st.markdown(
 
 
 # =============================================================================
-# DATA PREPARATION AND MODELLING
+# DATA AND MODELLING
 # =============================================================================
 @st.cache_data(show_spinner=False)
 def load_data() -> pd.DataFrame:
-    """Load the preprocessed data and apply modelling safeguards."""
+    """Load the prepared dataset and apply safeguards confirmed during interviews."""
     if not DATA_PATH.exists():
-        raise FileNotFoundError(
-            f"Dataset not found: {DATA_PATH.name}. Place df_preprocessed.csv in the same folder as app.py."
-        )
+        raise FileNotFoundError(f"Dataset not found: {DATA_PATH.name}")
 
     df = pd.read_csv(DATA_PATH)
 
-    # Quantity <= 0 was confirmed as a system error during the interview.
+    # Quantity <= 0 was confirmed as a system error.
     df = df[df["qty"] > 0].copy()
 
-    # For the same Quote ID and product, the expert suggested keeping the
-    # highest unit price when price-list updates create multiple records.
+    # The expert recommended retaining the highest unit price when price-list
+    # updates create repeated Quote ID + Product records.
     if "is_highest_price" in df.columns:
         df = df[df["is_highest_price"] == 1].copy()
 
@@ -339,13 +330,13 @@ def load_data() -> pd.DataFrame:
 
 
 def create_pipeline() -> Pipeline:
-    numeric_pipe = Pipeline(
+    numeric_pipeline = Pipeline(
         steps=[
             ("imputer", SimpleImputer(strategy="median")),
             ("scaler", StandardScaler()),
         ]
     )
-    categorical_pipe = Pipeline(
+    categorical_pipeline = Pipeline(
         steps=[
             ("imputer", SimpleImputer(strategy="most_frequent")),
             ("onehot", OneHotEncoder(handle_unknown="ignore")),
@@ -353,8 +344,8 @@ def create_pipeline() -> Pipeline:
     )
     preprocessor = ColumnTransformer(
         transformers=[
-            ("numeric", numeric_pipe, NUMERIC_FEATURES),
-            ("categorical", categorical_pipe, CATEGORICAL_FEATURES),
+            ("numeric", numeric_pipeline, NUMERIC_FEATURES),
+            ("categorical", categorical_pipeline, CATEGORICAL_FEATURES),
         ]
     )
     classifier = LogisticRegression(
@@ -368,21 +359,22 @@ def create_pipeline() -> Pipeline:
 
 @st.cache_resource(show_spinner=False)
 def train_model() -> Tuple[Pipeline, Dict[str, float], List[List[int]]]:
-    """Train an explainable baseline using a Quote-ID grouped holdout split."""
-    data = load_data()
-    X = data[MODEL_FEATURES]
-    y = data["is_win"]
-    groups = data["quote_id"]
+    """Train a Quote-ID-aware explainable baseline and return validation metrics."""
+    dataset = load_data()
+    X = dataset[MODEL_FEATURES]
+    y = dataset["is_win"]
+    groups = dataset["quote_id"]
 
     splitter = GroupShuffleSplit(n_splits=1, test_size=0.25, random_state=42)
     train_idx, test_idx = next(splitter.split(X, y, groups=groups))
 
-    train_data = data.iloc[train_idx]
-    train_quote_counts = train_data.groupby("quote_id").size()
-    train_weights = train_data["quote_id"].map(lambda quote: 1.0 / train_quote_counts.loc[quote]).to_numpy()
+    train_dataset = dataset.iloc[train_idx]
+    train_quote_counts = train_dataset.groupby("quote_id").size()
+    train_weights = train_dataset["quote_id"].map(lambda quote: 1.0 / train_quote_counts.loc[quote]).to_numpy()
 
     eval_model = create_pipeline()
     eval_model.fit(X.iloc[train_idx], y.iloc[train_idx], classifier__sample_weight=train_weights)
+
     probabilities = eval_model.predict_proba(X.iloc[test_idx])[:, 1]
     predictions = (probabilities >= 0.50).astype(int)
 
@@ -396,16 +388,17 @@ def train_model() -> Tuple[Pipeline, Dict[str, float], List[List[int]]]:
     }
     cm = confusion_matrix(y.iloc[test_idx], predictions).tolist()
 
-    # Refit on all available records, weighting each Quote ID equally.
-    all_quote_counts = data.groupby("quote_id").size()
-    all_weights = data["quote_id"].map(lambda quote: 1.0 / all_quote_counts.loc[quote]).to_numpy()
+    # Final model is fitted using all records with equal weighting per Quote ID.
+    all_quote_counts = dataset.groupby("quote_id").size()
+    all_weights = dataset["quote_id"].map(lambda quote: 1.0 / all_quote_counts.loc[quote]).to_numpy()
+
     final_model = create_pipeline()
     final_model.fit(X, y, classifier__sample_weight=all_weights)
     return final_model, metrics, cm
 
 
-def product_defaults(data: pd.DataFrame, product: str) -> Dict[str, float]:
-    subset = data[data["product"] == product].copy()
+def product_defaults(dataset: pd.DataFrame, product: str) -> Dict[str, float]:
+    subset = dataset[dataset["product"] == product].copy()
     comp_a = subset["competitor_a"].dropna()
     comp_b = subset["competitor_b"].dropna()
     comp_c = subset["competitor_c"].dropna()
@@ -441,13 +434,14 @@ def build_scenario(
     unit_price = estimated_cost_per_unit / (1.0 - gross_margin_rate)
     subtotal_price = unit_price * qty
     total_cost = estimated_cost_per_unit * qty
-    competitors = available_competitors(competitor_a, competitor_b, competitor_c)
-    count = len(competitors)
-    avg_competitor = float(np.mean(competitors)) if competitors else np.nan
-    min_competitor = float(np.min(competitors)) if competitors else np.nan
 
-    price_gap_avg_pct = ((unit_price - avg_competitor) / avg_competitor) * 100 if competitors else np.nan
-    price_gap_min_pct = ((unit_price - min_competitor) / min_competitor) * 100 if competitors else np.nan
+    competitor_values = available_competitors(competitor_a, competitor_b, competitor_c)
+    competitor_count = len(competitor_values)
+    avg_competitor = float(np.mean(competitor_values)) if competitor_values else np.nan
+    min_competitor = float(np.min(competitor_values)) if competitor_values else np.nan
+
+    avg_gap_pct = ((unit_price - avg_competitor) / avg_competitor) * 100 if competitor_values else np.nan
+    min_gap_pct = ((unit_price - min_competitor) / min_competitor) * 100 if competitor_values else np.nan
 
     row = {
         "product": product,
@@ -458,11 +452,11 @@ def build_scenario(
         "energy_grant_amount": float(energy_grant_amount),
         "estimated_cost": float(total_cost),
         "grant_ratio_to_subtotal": float(energy_grant_amount / subtotal_price) if subtotal_price else np.nan,
-        "competitor_count_available": int(count),
+        "competitor_count_available": int(competitor_count),
         "avg_competitor_price": avg_competitor,
         "min_competitor_price": min_competitor,
-        "price_gap_avg_competitor_pct": price_gap_avg_pct,
-        "price_gap_min_competitor_pct": price_gap_min_pct,
+        "price_gap_avg_competitor_pct": avg_gap_pct,
+        "price_gap_min_competitor_pct": min_gap_pct,
         "subtotal_price": float(subtotal_price),
         "gross_profit_amount": float(subtotal_price - total_cost),
     }
@@ -470,11 +464,11 @@ def build_scenario(
 
 
 def score_scenario(model: Pipeline, scenario: pd.DataFrame) -> Dict[str, float]:
-    probability = float(model.predict_proba(scenario[MODEL_FEATURES])[:, 1][0])
+    win_probability = float(model.predict_proba(scenario[MODEL_FEATURES])[:, 1][0])
     gross_profit = float(scenario["gross_profit_amount"].iloc[0])
-    expected_gross_profit = probability * gross_profit
+    expected_gross_profit = win_probability * gross_profit
     return {
-        "win_probability": probability,
+        "win_probability": win_probability,
         "gross_profit_amount": gross_profit,
         "expected_gross_profit": expected_gross_profit,
     }
@@ -493,7 +487,7 @@ def recommend_margin(
     minimum_margin: float,
     maximum_margin: float = 0.70,
 ) -> pd.DataFrame:
-    records = []
+    records: List[Dict[str, float]] = []
     for gmr in np.arange(0.00, maximum_margin + 0.001, 0.01):
         scenario = build_scenario(
             product=product,
@@ -506,23 +500,23 @@ def recommend_margin(
             competitor_b=competitor_b,
             competitor_c=competitor_c,
         )
-        scored = score_scenario(model, scenario)
+        score = score_scenario(model, scenario)
         records.append(
             {
-                "Gross Margin Rate": gmr,
+                "Gross Margin Rate": float(gmr),
                 "Unit Price": float(scenario["unit_price"].iloc[0]),
-                "Win Probability": scored["win_probability"],
-                "Gross Profit if Won": scored["gross_profit_amount"],
-                "Expected Gross Profit": scored["expected_gross_profit"],
-                "Meets Minimum Margin": gmr >= minimum_margin,
+                "Win Probability": score["win_probability"],
+                "Gross Profit if Won": score["gross_profit_amount"],
+                "Expected Gross Profit": score["expected_gross_profit"],
+                "Meets Minimum Margin": bool(gmr >= minimum_margin),
             }
         )
     return pd.DataFrame(records)
 
 
-def historical_benchmark(data: pd.DataFrame, product: str, gmr: float) -> Dict[str, float]:
+def historical_benchmark(dataset: pd.DataFrame, product: str, gmr: float) -> Dict[str, float]:
     band = pd.cut(pd.Series([gmr]), bins=GMR_BINS, labels=GMR_LABELS).iloc[0]
-    subset = data[(data["product"] == product) & (data["gmr_band"] == band)].copy()
+    subset = dataset[(dataset["product"] == product) & (dataset["gmr_band"] == band)].copy()
     subset = subset.drop_duplicates(subset=["quote_id"])
     if subset.empty:
         return {"band": str(band), "n": 0, "historical_win_rate": np.nan}
@@ -536,10 +530,10 @@ def historical_benchmark(data: pd.DataFrame, product: str, gmr: float) -> Dict[s
 def classify_price_position(unit_price: float, min_competitor: float) -> str:
     if pd.isna(min_competitor):
         return "Competitor information unavailable"
-    ratio = (unit_price - min_competitor) / min_competitor
-    if ratio < -0.05:
+    price_gap_ratio = (unit_price - min_competitor) / min_competitor
+    if price_gap_ratio < -0.05:
         return "Below competitor benchmark"
-    if ratio <= 0.05:
+    if price_gap_ratio <= 0.05:
         return "Approximately aligned (±5%)"
     return "Above competitor benchmark"
 
@@ -560,22 +554,10 @@ def risk_flags(
         flags.append(("Medium", "Margin review", f"Margin is below the selected minimum target of {minimum_margin:.0%}."))
 
     if score["win_probability"] < minimum_win_probability:
-        flags.append(
-            (
-                "Medium",
-                "Conversion risk",
-                f"Estimated win probability is below the review threshold of {minimum_win_probability:.0%}.",
-            )
-        )
+        flags.append(("Medium", "Conversion risk", f"Estimated win probability is below the review threshold of {minimum_win_probability:.0%}."))
 
     if int(row["competitor_count_available"]) == 0:
-        flags.append(
-            (
-                "Medium",
-                "Information gap",
-                "No competitor benchmark is available. Review the recommendation with additional sales information.",
-            )
-        )
+        flags.append(("Medium", "Information gap", "No competitor benchmark is available. Review with additional sales information."))
     elif pd.notna(row["price_gap_min_competitor_pct"]) and float(row["price_gap_min_competitor_pct"]) > 5:
         flags.append(
             (
@@ -609,61 +591,15 @@ def currency(value: float) -> str:
     return f"{value:,.0f}"
 
 
-def format_percent(value: float, decimals: int = 1) -> str:
+def signed_currency(value: float) -> str:
     if pd.isna(value):
         return "N/A"
-    return f"{value:.{decimals}%}"
+    return f"{value:+,.0f}"
 
 
 def render_page_header(title: str, subtitle: str) -> None:
-    st.markdown("<span class='eyebrow'>Group E · Quantitative Analytics</span>", unsafe_allow_html=True)
-    st.markdown(f"<h1 class='page-title'>{escape(title)}</h1>", unsafe_allow_html=True)
-    st.markdown(f"<div class='page-subtitle'>{escape(subtitle)}</div>", unsafe_allow_html=True)
-
-
-def render_section_heading(title: str, subtitle: str = "") -> None:
-    st.markdown(f"<div class='section-title'>{escape(title)}</div>", unsafe_allow_html=True)
-    if subtitle:
-        st.markdown(f"<div class='section-subtitle'>{escape(subtitle)}</div>", unsafe_allow_html=True)
-
-
-def render_metric_card(label: str, value: str, footnote: str, icon: str, accent: str = "blue") -> None:
-    safe_accent = accent if accent in {"blue", "teal", "green", "purple", "amber", "red", "slate"} else "blue"
-    st.markdown(
-        f"""
-        <div class="metric-card accent-{safe_accent}">
-            <div class="metric-topline">
-                <div class="metric-label">{escape(label)}</div>
-                <div class="metric-icon">{escape(icon)}</div>
-            </div>
-            <div class="metric-value">{escape(value)}</div>
-            <div class="metric-footnote">{escape(footnote)}</div>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
-
-def render_insight(text: str) -> None:
-    st.markdown(f"<div class='insight-box'>{escape(text)}</div>", unsafe_allow_html=True)
-
-
-def render_note_html(content: str) -> None:
-    st.markdown(f"<div class='note-card'>{content}</div>", unsafe_allow_html=True)
-
-
-def apply_chart_layout(fig: go.Figure, *, height: int = 380) -> go.Figure:
-    fig.update_layout(
-        height=height,
-        plot_bgcolor="#FFFFFF",
-        paper_bgcolor="#FFFFFF",
-        font=dict(family="Arial, sans-serif", color="#344054", size=12),
-        margin=dict(l=15, r=15, t=28, b=15),
-        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="left", x=0),
-    )
-    fig.update_xaxes(showgrid=False, linecolor="#E5E7EB")
-    fig.update_yaxes(gridcolor="#EEF2F6", zerolinecolor="#E5E7EB")
-    return fig
+    st.markdown(f"<div class='page-title'>{title}</div>", unsafe_allow_html=True)
+    st.markdown(f"<div class='page-subtitle'>{subtitle}</div>", unsafe_allow_html=True)
 
 
 def render_title() -> None:
@@ -673,106 +609,145 @@ def render_title() -> None:
     )
 
 
+def render_section_header(title: str, caption: str = "") -> None:
+    st.markdown(f"<div class='section-title'>{title}</div>", unsafe_allow_html=True)
+    if caption:
+        st.markdown(f"<div class='section-caption'>{caption}</div>", unsafe_allow_html=True)
+
+
+def render_metric_card(
+    label: str,
+    value: str,
+    footnote: str,
+    accent: str = BLUE,
+    icon: str = "📌",
+    compact: bool = False,
+) -> None:
+    compact_class = " compact" if compact else ""
+    st.markdown(
+        f"""
+        <div class='metric-card{compact_class}' style='--accent:{accent};'>
+            <div class='metric-topline'>
+                <div class='metric-label'>{label}</div>
+                <div class='metric-icon'>{icon}</div>
+            </div>
+            <div class='metric-value'>{value}</div>
+            <div class='metric-footnote'>{footnote}</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def render_insight(text: str) -> None:
+    st.markdown(f"<div class='insight-box'>{text}</div>", unsafe_allow_html=True)
+
+
+def render_risk_card(severity: str, title: str, explanation: str) -> None:
+    color = GREEN if severity == "Low" else AMBER if severity == "Medium" else RED
+    st.markdown(
+        f"""
+        <div class='risk-card' style='--risk-color:{color};'>
+            <b>{severity}: {title}</b><br>
+            <span>{explanation}</span>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def standard_layout(fig: go.Figure, height: int = 380) -> go.Figure:
+    fig.update_layout(
+        height=height,
+        plot_bgcolor="#FFFFFF",
+        paper_bgcolor="#FFFFFF",
+        font=dict(color="#475467"),
+        margin=dict(l=10, r=10, t=20, b=10),
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="left", x=0),
+    )
+    fig.update_xaxes(showgrid=False, linecolor="#E4E7EC")
+    fig.update_yaxes(gridcolor="#EAECF0", linecolor="#E4E7EC")
+    return fig
+
+
 # =============================================================================
-# LOAD SHARED RESOURCES
+# SHARED RESOURCES
 # =============================================================================
 try:
     data = load_data()
     model, model_metrics, confusion = train_model()
 except Exception as exc:
-    st.error(f"The dashboard could not be loaded: {exc}")
+    st.error(f"The dashboard could not be initialized: {exc}")
     st.stop()
 
 
 # =============================================================================
-# SIDEBAR NAVIGATION
+# SIDEBAR
 # =============================================================================
 with st.sidebar:
-    st.markdown("## 📊 QABD Dashboard")
-    st.caption("Quotation Pricing Decision Support")
-    st.markdown("---")
+    st.markdown("## 📊 Pricing Review")
+    st.caption("Quotation Decision Support")
+    st.divider()
 
     page = st.radio(
         "Navigation",
         [
-            "🏠 Executive Overview",
-            "🎯 Quote Recommender",
-            "📈 Margin Sweet Spot",
-            "⚖️ Competitor Positioning",
-            "🧪 Data Quality & Model Notes",
+            "Executive Overview",
+            "Quote Recommender",
+            "Margin Sweet Spot",
+            "Competitor Positioning",
+            "Data Quality & Model Notes",
         ],
         label_visibility="collapsed",
     )
 
-    st.markdown("---")
+    st.divider()
     st.markdown("**Decision-support scope**")
     st.caption(
-        "This prototype supports quotation price review. It does not replace managerial approval, customer knowledge, or commercial judgement."
+        "This dashboard supports price review. It does not replace managerial approval, customer knowledge, or commercial judgement."
     )
-    st.markdown("---")
-    st.caption(f"Version: {APP_VERSION}")
-    st.caption(f"Updated: {LAST_UPDATED}")
+    st.markdown(
+        f"""
+        <div class='sidebar-badge'>
+            <b>Version:</b> {APP_VERSION}<br>
+            <b>Last updated:</b> {LAST_UPDATED}
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
 
 # =============================================================================
-# EXECUTIVE OVERVIEW
+# PAGE 1 — EXECUTIVE OVERVIEW
 # =============================================================================
-if page == "🏠 Executive Overview":
+if page == "Executive Overview":
     render_title()
-
     quote_header = data.drop_duplicates(subset=["quote_id"]).copy()
 
     with st.container(border=True):
-        render_section_heading(
+        render_section_header(
             "Executive Overview",
-            "A high-level summary of historical quotation performance, product-level conversion patterns, and rule-based review signals.",
+            "A high-level summary of historical quotation performance, product conversion patterns, and potential lost-tender review signals.",
         )
-        c1, c2, c3, c4 = st.columns(4)
-        with c1:
-            render_metric_card(
-                "Historical quotations",
-                f"{quote_header['quote_id'].nunique():,}",
-                "Unique quotation records",
-                "🧾",
-                "blue",
-            )
-        with c2:
-            render_metric_card(
-                "Product categories",
-                f"{data['product'].nunique():,}",
-                "Distinct anonymized product codes",
-                "📦",
-                "purple",
-            )
-        with c3:
-            render_metric_card(
-                "Historical win rate",
-                f"{quote_header['is_win'].mean():.1%}",
-                "Quotation-level conversion success",
-                "🏆",
-                "green",
-            )
-        with c4:
-            render_metric_card(
-                "Rows with competitor info",
-                f"{(data['competitor_count_available'] > 0).mean():.1%}",
-                "At least one competitor benchmark",
-                "🔎",
-                "amber",
-            )
-        st.markdown("")
+        col1, col2, col3, col4 = st.columns(4)
+        with col1:
+            render_metric_card("Historical quotations", f"{quote_header['quote_id'].nunique():,}", "Unique quotation records", BLUE, "🧾")
+        with col2:
+            render_metric_card("Product categories", f"{data['product'].nunique():,}", "Distinct anonymized product codes", TEAL, "📦")
+        with col3:
+            render_metric_card("Historical win rate", f"{quote_header['is_win'].mean():.1%}", "Quotation-level conversion success", GREEN, "🏆")
+        with col4:
+            render_metric_card("Rows with competitor info", f"{(data['competitor_count_available'] > 0).mean():.1%}", "Product lines with benchmark availability", PURPLE, "🔎")
+
         render_insight(
-            "The dashboard balances quotation profitability with tender success while considering product characteristics, energy grants, and available competitor-price benchmarks."
+            "The dashboard is designed around the project objective: balancing quotation profitability with tender success while considering product characteristics, energy grants, and competitor-price benchmarks."
         )
 
     left, right = st.columns(2)
 
     with left:
         with st.container(border=True):
-            render_section_heading(
-                "Historical win rate by gross-margin band",
-                "Quotation-level conversion performance across historical gross-margin ranges.",
-            )
+            render_section_header("Historical win rate by gross-margin band", "Quotation-level performance across gross-margin ranges.")
             margin_summary = (
                 quote_header.groupby("gmr_band", observed=False)
                 .agg(Quotations=("quote_id", "nunique"), Win_Rate=("is_win", "mean"))
@@ -784,30 +759,17 @@ if page == "🏠 Executive Overview":
                 y="Win_Rate",
                 text=margin_summary["Win_Rate"].map(lambda value: f"{value:.1%}"),
                 color="gmr_band",
-                color_discrete_sequence=[
-                    COLORS["blue"],
-                    COLORS["sky"],
-                    COLORS["teal"],
-                    COLORS["green"],
-                    COLORS["amber"],
-                    COLORS["orange"],
-                    COLORS["red"],
-                    COLORS["purple"],
-                ],
+                color_discrete_sequence=[BLUE, SKY, TEAL, GREEN, AMBER, ORANGE, RED, PURPLE],
                 hover_data={"Quotations": True, "Win_Rate": ":.1%"},
                 labels={"gmr_band": "Gross Margin Rate", "Win_Rate": "Historical Win Rate"},
             )
-            fig.update_traces(marker_line_color="#FFFFFF", marker_line_width=1.1, textposition="outside")
             fig.update_layout(showlegend=False, yaxis_tickformat=".0%")
-            apply_chart_layout(fig, height=365)
-            st.plotly_chart(fig, use_container_width=True)
+            fig.update_traces(marker_line_color="#FFFFFF", marker_line_width=1.1)
+            st.plotly_chart(standard_layout(fig, 360), use_container_width=True)
 
     with right:
         with st.container(border=True):
-            render_section_heading(
-                "Product-level win rate",
-                "Only products with a minimum of 20 historical observations are shown.",
-            )
+            render_section_header("Product-level win rate", "Products with at least 20 quotation observations.")
             product_summary = (
                 data.drop_duplicates(subset=["quote_id", "product"])
                 .groupby("product")
@@ -822,25 +784,21 @@ if page == "🏠 Executive Overview":
                 orientation="h",
                 text=product_summary["Win_Rate"].map(lambda value: f"{value:.1%}"),
                 color="Win_Rate",
-                color_continuous_scale=["#DBEAFE", "#38BDF8", "#0F766E"],
+                color_continuous_scale=["#CCFBF1", "#14B8A6", "#0F766E"],
                 hover_data={"Observations": True, "Win_Rate": ":.1%"},
                 labels={"product": "Product", "Win_Rate": "Historical Win Rate"},
             )
-            fig.update_traces(textposition="outside")
             fig.update_layout(coloraxis_showscale=False, xaxis_tickformat=".0%")
-            apply_chart_layout(fig, height=365)
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(standard_layout(fig, 360), use_container_width=True)
 
     with st.container(border=True):
-        render_section_heading(
+        render_section_header(
             "Potential lost-tender review signals",
-            "These are descriptive rule-based signals for reviewing unsuccessful product lines. They are not confirmed causal reasons.",
+            "Rule-based descriptive signals for failed product lines. These are not confirmed causal reasons.",
         )
         product_median = data.groupby("product")["gross_margin_rate"].median().to_dict()
         failed = data[data["is_win"] == 0].copy()
-        failed["Potential review signal"] = failed.apply(
-            lambda row: potential_loss_signal(row, product_median), axis=1
-        )
+        failed["Potential review signal"] = failed.apply(lambda row: potential_loss_signal(row, product_median), axis=1)
         signal_summary = (
             failed["Potential review signal"]
             .value_counts()
@@ -854,37 +812,36 @@ if page == "🏠 Executive Overview":
             text_auto=True,
             color="Potential review signal",
             color_discrete_map={
-                "Above competitor benchmark": COLORS["red"],
-                "High margin for product": COLORS["amber"],
-                "Competitor information unavailable": COLORS["purple"],
-                "Other factors not captured": COLORS["slate"],
+                "Above competitor benchmark": RED,
+                "Other factors not captured": SLATE,
+                "Competitor information unavailable": PURPLE,
+                "High margin for product": AMBER,
             },
         )
-        fig.update_traces(marker_line_color="#FFFFFF", marker_line_width=1.0, textposition="outside")
         fig.update_layout(showlegend=False)
-        apply_chart_layout(fig, height=365)
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(standard_layout(fig, 370), use_container_width=True)
         st.caption(
-            "Additional customer and sales-process data would be required before interpreting these signals as the reasons for tender losses."
+            "Additional customer, salesperson, and sales-process information would be needed before interpreting these signals as causal reasons for tender losses."
         )
 
 
 # =============================================================================
-# QUOTE RECOMMENDER
+# PAGE 2 — QUOTE RECOMMENDER
 # =============================================================================
-elif page == "🎯 Quote Recommender":
+elif page == "Quote Recommender":
     render_title()
 
     with st.container(border=True):
-        render_section_heading(
+        render_section_header(
             "Interactive Quote Recommender",
-            "Enter a quotation scenario to estimate win probability, compare the proposed price with available competitor benchmarks, and identify a margin recommendation that balances conversion chance with expected gross profit.",
+            "Enter a product-line pricing scenario to compare the proposed quote with a model-based recommendation.",
         )
 
         products = sorted(data["product"].astype(str).unique().tolist())
-        input_left, input_mid, input_right = st.columns(3)
+        input_left, input_middle, input_right = st.columns(3)
 
         with input_left:
+            st.markdown("<span class='pill pill-blue'>1. Product & Cost</span>", unsafe_allow_html=True)
             product = st.selectbox("Product", products, index=products.index("H1") if "H1" in products else 0)
             defaults = product_defaults(data, product)
             kw = st.number_input("Power rating (kW)", min_value=0.1, value=float(defaults["kw"]), step=0.5)
@@ -896,14 +853,15 @@ elif page == "🎯 Quote Recommender":
                 step=1000.0,
             )
 
-        with input_mid:
-            selected_gmr_pct = st.slider("Proposed gross margin rate", min_value=-10, max_value=80, value=30, step=1)
+        with input_middle:
+            st.markdown("<span class='pill pill-purple'>2. Margin & Review Rules</span>", unsafe_allow_html=True)
+            selected_gmr_pct = st.slider("Proposed gross-margin rate", min_value=-10, max_value=80, value=30, step=1)
             energy_grant = st.number_input(
                 "Energy grant amount",
                 min_value=0.0,
                 value=float(round(defaults["grant"], 2)),
                 step=1000.0,
-                help="The historical data indicate product-related energy-grant values. Adjust this input when reviewing a specific quotation.",
+                help="Historical data indicate that grant values are product-related. Adjust this when reviewing a specific quotation.",
             )
             minimum_margin_pct = st.slider(
                 "Minimum target margin for recommendation",
@@ -911,13 +869,14 @@ elif page == "🎯 Quote Recommender":
                 max_value=50,
                 value=20,
                 step=1,
-                help="The default is 20% based on the interview discussion. Lower-margin cases may still be reviewed by a supervisor.",
+                help="The default reflects the interview discussion. Lower-margin cases may still be reviewed by a supervisor.",
             )
             review_win_threshold_pct = st.slider("Win-probability review threshold", 10, 80, 40, 5)
 
         with input_right:
-            has_competitor_info = st.checkbox("Use competitor price information", value=pd.notna(defaults["competitor_a"]))
-            if has_competitor_info:
+            st.markdown("<span class='pill pill-amber'>3. Competitor Benchmarks</span>", unsafe_allow_html=True)
+            use_competitor_info = st.checkbox("Use competitor-price information", value=pd.notna(defaults["competitor_a"]))
+            if use_competitor_info:
                 comp_a_default = 0.0 if pd.isna(defaults["competitor_a"]) else defaults["competitor_a"]
                 comp_b_default = 0.0 if pd.isna(defaults["competitor_b"]) else defaults["competitor_b"]
                 comp_c_default = 0.0 if pd.isna(defaults["competitor_c"]) else defaults["competitor_c"]
@@ -926,7 +885,7 @@ elif page == "🎯 Quote Recommender":
                 competitor_c = st.number_input("Competitor C price (0 = unavailable)", min_value=0.0, value=float(comp_c_default), step=1000.0)
             else:
                 competitor_a = competitor_b = competitor_c = np.nan
-            st.caption("Competitor fields are optional because competitor information is frequently unavailable in the historical dataset.")
+            st.caption("Competitor fields remain optional because market information is frequently unavailable in historical records.")
 
     selected_gmr = selected_gmr_pct / 100
     minimum_margin = minimum_margin_pct / 100
@@ -963,52 +922,125 @@ elif page == "🎯 Quote Recommender":
 
     feasible_grid = grid[grid["Meets Minimum Margin"]]
     best_row = feasible_grid.loc[feasible_grid["Expected Gross Profit"].idxmax()]
+
     benchmark = historical_benchmark(data, product, selected_gmr)
-    unit_price = float(scenario["unit_price"].iloc[0])
-    min_competitor = (
-        float(scenario["min_competitor_price"].iloc[0])
-        if pd.notna(scenario["min_competitor_price"].iloc[0])
-        else np.nan
-    )
+    proposed_unit_price = float(scenario["unit_price"].iloc[0])
+    proposed_win_probability = float(selected_score["win_probability"])
+    proposed_gp_if_won = float(selected_score["gross_profit_amount"])
+    proposed_expected_gp = float(selected_score["expected_gross_profit"])
 
+    recommended_gmr = float(best_row["Gross Margin Rate"])
+    recommended_unit_price = float(best_row["Unit Price"])
+    recommended_win_probability = float(best_row["Win Probability"])
+    recommended_gp_if_won = float(best_row["Gross Profit if Won"])
+    recommended_expected_gp = float(best_row["Expected Gross Profit"])
+
+    delta_gmr = recommended_gmr - selected_gmr
+    delta_unit_price = recommended_unit_price - proposed_unit_price
+    delta_win_probability = recommended_win_probability - proposed_win_probability
+    delta_gp_if_won = recommended_gp_if_won - proposed_gp_if_won
+    delta_expected_gp = recommended_expected_gp - proposed_expected_gp
+
+    min_competitor = float(scenario["min_competitor_price"].iloc[0]) if pd.notna(scenario["min_competitor_price"].iloc[0]) else np.nan
+
+    # -------------------------------------------------------------------------
+    # Scenario results with category-based information architecture
+    # -------------------------------------------------------------------------
     with st.container(border=True):
-        render_section_heading(
+        render_section_header(
             "Scenario Results",
-            "The first row reflects the proposed quotation. The second row shows the model-based recommendation within the selected minimum-margin constraint.",
+            "Pricing, probability, and profitability are separated below so the current quotation and model recommendation can be reviewed more clearly.",
         )
-        row1 = st.columns(4)
-        with row1[0]:
-            render_metric_card("Proposed unit price", currency(unit_price), "Calculated from cost and proposed GMR", "💵", "blue")
-        with row1[1]:
-            render_metric_card("Estimated win probability", f"{selected_score['win_probability']:.1%}", "Model-based probability estimate", "🎯", "green")
-        with row1[2]:
-            render_metric_card("Gross profit if won", currency(selected_score["gross_profit_amount"]), "Gross profit conditional on winning", "📈", "teal")
-        with row1[3]:
-            render_metric_card("Expected gross profit", currency(selected_score["expected_gross_profit"]), "Probability-adjusted gross profit", "⚖️", "purple")
 
-        st.markdown("")
-        row2 = st.columns(4)
-        with row2[0]:
-            render_metric_card("Recommended GMR", f"{best_row['Gross Margin Rate']:.0%}", "Highest expected GP within constraint", "✅", "green")
-        with row2[1]:
-            render_metric_card("Win probability at recommendation", f"{best_row['Win Probability']:.1%}", "Estimated chance at recommended margin", "🏆", "teal")
-        with row2[2]:
-            render_metric_card("Recommended unit price", currency(best_row["Unit Price"]), "Price implied by recommended GMR", "🏷️", "amber")
-        with row2[3]:
-            render_metric_card("Expected GP at recommendation", currency(best_row["Expected Gross Profit"]), "Maximum model-estimated expected GP", "💡", "purple")
+        proposed_col, recommendation_col = st.columns(2)
 
-        st.markdown("")
+        with proposed_col:
+            with st.container(border=True):
+                st.markdown("<span class='pill pill-blue'>Current Scenario</span>", unsafe_allow_html=True)
+                st.markdown("<div class='group-title'>Proposed Quote</div>", unsafe_allow_html=True)
+                st.markdown("<div class='group-caption'>The quotation currently entered by the user.</div>", unsafe_allow_html=True)
+
+                st.markdown("**Pricing**")
+                p1, p2 = st.columns(2)
+                with p1:
+                    render_metric_card("Proposed GMR", f"{selected_gmr:.0%}", "Current gross-margin input", BLUE, "📌", compact=True)
+                with p2:
+                    render_metric_card("Proposed unit price", currency(proposed_unit_price), "Calculated from cost and proposed GMR", BLUE, "🏷️", compact=True)
+
+                st.markdown("**Win Probability**")
+                render_metric_card("Estimated win probability", f"{proposed_win_probability:.1%}", "Model-estimated chance for the proposed quote", SKY, "🎯", compact=True)
+
+                st.markdown("**Profitability**")
+                p3, p4 = st.columns(2)
+                with p3:
+                    render_metric_card("Gross profit if won", currency(proposed_gp_if_won), "Profit conditional on tender success", TEAL, "📈", compact=True)
+                with p4:
+                    render_metric_card("Expected gross profit", currency(proposed_expected_gp), "Probability-adjusted gross profit", PURPLE, "⚖️", compact=True)
+
+        with recommendation_col:
+            with st.container(border=True):
+                st.markdown("<span class='pill pill-green'>Model Recommendation</span>", unsafe_allow_html=True)
+                st.markdown("<div class='group-title'>Recommended Quote</div>", unsafe_allow_html=True)
+                st.markdown("<div class='group-caption'>The scenario with the highest expected gross profit within the selected minimum-margin rule.</div>", unsafe_allow_html=True)
+
+                st.markdown("**Pricing**")
+                r1, r2 = st.columns(2)
+                with r1:
+                    render_metric_card("Recommended GMR", f"{recommended_gmr:.0%}", f"Change versus proposed: {delta_gmr:+.0%}", GREEN, "✅", compact=True)
+                with r2:
+                    render_metric_card("Recommended unit price", currency(recommended_unit_price), f"Change versus proposed: {signed_currency(delta_unit_price)}", GREEN, "🏷️", compact=True)
+
+                st.markdown("**Win Probability**")
+                render_metric_card("Win probability at recommendation", f"{recommended_win_probability:.1%}", f"Change versus proposed: {delta_win_probability:+.1%}", AMBER, "🏆", compact=True)
+
+                st.markdown("**Profitability**")
+                r3, r4 = st.columns(2)
+                with r3:
+                    render_metric_card("Gross profit if won", currency(recommended_gp_if_won), f"Change versus proposed: {signed_currency(delta_gp_if_won)}", TEAL, "📊", compact=True)
+                with r4:
+                    render_metric_card("Expected GP at recommendation", currency(recommended_expected_gp), f"Change versus proposed: {signed_currency(delta_expected_gp)}", PURPLE, "💡", compact=True)
+
+        st.markdown("### Comparison Summary")
+        comparison_table = pd.DataFrame(
+            {
+                "Category": ["Pricing", "Pricing", "Probability", "Profitability", "Profitability"],
+                "Metric": ["Gross Margin Rate", "Unit Price", "Win Probability", "Gross Profit if Won", "Expected Gross Profit"],
+                "Proposed Quote": [
+                    f"{selected_gmr:.0%}",
+                    currency(proposed_unit_price),
+                    f"{proposed_win_probability:.1%}",
+                    currency(proposed_gp_if_won),
+                    currency(proposed_expected_gp),
+                ],
+                "Recommended Quote": [
+                    f"{recommended_gmr:.0%}",
+                    currency(recommended_unit_price),
+                    f"{recommended_win_probability:.1%}",
+                    currency(recommended_gp_if_won),
+                    currency(recommended_expected_gp),
+                ],
+                "Difference": [
+                    f"{delta_gmr:+.0%}",
+                    signed_currency(delta_unit_price),
+                    f"{delta_win_probability:+.1%}",
+                    signed_currency(delta_gp_if_won),
+                    signed_currency(delta_expected_gp),
+                ],
+            }
+        )
+        st.dataframe(comparison_table, use_container_width=True, hide_index=True)
+
         render_insight(
-            "The recommendation maximizes model-estimated expected gross profit among scenarios that meet the selected minimum-margin requirement. It should still be reviewed alongside sales knowledge and customer-specific considerations."
+            f"The proposed quotation produces an estimated win probability of <b>{proposed_win_probability:.1%}</b> and expected gross profit of <b>{currency(proposed_expected_gp)}</b>. "
+            f"Within the selected minimum-margin rule, the model recommends a GMR of <b>{recommended_gmr:.0%}</b>, resulting in model-estimated expected gross profit of <b>{currency(recommended_expected_gp)}</b>. "
+            "The recommendation should still be reviewed alongside customer context, sales knowledge, and competitor-data availability."
         )
 
-    sim_left, sim_right = st.columns([1.55, 1.0])
-    with sim_left:
+    simulation_col, benchmark_col = st.columns([1.55, 1.0])
+
+    with simulation_col:
         with st.container(border=True):
-            render_section_heading(
-                "What-if Margin Simulation",
-                "Observe how win probability and expected gross profit change when the gross-margin rate is adjusted.",
-            )
+            render_section_header("What-if margin simulation", "Explore how the margin level changes win probability and expected gross profit.")
             fig = go.Figure()
             fig.add_trace(
                 go.Scatter(
@@ -1016,7 +1048,7 @@ elif page == "🎯 Quote Recommender":
                     y=grid["Win Probability"],
                     name="Estimated win probability",
                     mode="lines",
-                    line=dict(color=COLORS["blue"], width=4),
+                    line=dict(color=BLUE, width=4),
                     yaxis="y1",
                 )
             )
@@ -1026,80 +1058,59 @@ elif page == "🎯 Quote Recommender":
                     y=grid["Expected Gross Profit"],
                     name="Expected gross profit",
                     mode="lines",
-                    line=dict(color=COLORS["purple"], width=4),
+                    line=dict(color=PURPLE, width=4),
                     fill="tozeroy",
-                    fillcolor="rgba(139, 92, 246, 0.10)",
+                    fillcolor="rgba(124, 58, 237, 0.10)",
                     yaxis="y2",
                 )
             )
-            fig.add_vline(x=selected_gmr_pct, line_dash="dash", line_color=COLORS["amber"], annotation_text="Proposed GMR")
-            fig.add_vline(
-                x=float(best_row["Gross Margin Rate"] * 100),
-                line_dash="dot",
-                line_color=COLORS["green"],
-                annotation_text="Recommended GMR",
-            )
+            fig.add_vline(x=selected_gmr_pct, line_dash="dash", line_color=BLUE, annotation_text="Proposed GMR")
+            fig.add_vline(x=recommended_gmr * 100, line_dash="dot", line_color=GREEN, annotation_text="Recommended GMR")
             fig.update_layout(
                 xaxis_title="Gross Margin Rate (%)",
                 yaxis=dict(title="Estimated Win Probability", tickformat=".0%"),
-                yaxis2=dict(title="Expected Gross Profit", overlaying="y", side="right"),
+                yaxis2=dict(title="Expected Gross Profit", overlaying="y", side="right", showgrid=False),
             )
-            apply_chart_layout(fig, height=420)
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(standard_layout(fig, 420), use_container_width=True)
 
-    with sim_right:
+    with benchmark_col:
         with st.container(border=True):
-            render_section_heading(
-                "Historical Benchmark",
-                "A descriptive comparison with the selected product and margin band in the historical dataset.",
-            )
-            historical_rate = format_percent(benchmark["historical_win_rate"])
-            st.markdown(
-                f"""
-                <div class="note-card">
-                    <b>Selected product:</b> {escape(str(product))}<br><br>
-                    <b>Gross-margin band:</b> {escape(str(benchmark['band']))}<br><br>
-                    <b>Historical records in band:</b> {benchmark['n']:,}<br><br>
-                    <b>Historical win rate:</b> {historical_rate}<br><br>
-                    <b>Price position:</b> {escape(classify_price_position(unit_price, min_competitor))}
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
-            st.caption("Historical win rates are descriptive benchmarks and should not be interpreted as causal effects.")
+            render_section_header("Historical benchmark", "Contextual benchmark for the proposed scenario.")
+            benchmark_win_rate = "N/A" if pd.isna(benchmark["historical_win_rate"]) else f"{benchmark['historical_win_rate']:.1%}"
+            b1, b2 = st.columns(2)
+            with b1:
+                render_metric_card("Selected product", product, "Current review scenario", BLUE, "📦", compact=True)
+            with b2:
+                render_metric_card("GMR band", benchmark["band"], "Historical margin interval", TEAL, "📐", compact=True)
+            b3, b4 = st.columns(2)
+            with b3:
+                render_metric_card("Historical records", f"{benchmark['n']:,}", "Product records in selected band", AMBER, "🧾", compact=True)
+            with b4:
+                render_metric_card("Historical win rate", benchmark_win_rate, "Descriptive benchmark only", PURPLE, "🏅", compact=True)
+            render_insight(f"<b>Price position:</b> {classify_price_position(proposed_unit_price, min_competitor)}")
 
-    flag_left, flag_right = st.columns([1.0, 1.0])
-    with flag_left:
+    flags_col, competitor_col = st.columns([1.0, 1.2])
+
+    with flags_col:
         with st.container(border=True):
-            render_section_heading(
-                "Quote Review Flags",
-                "Rule-based alerts help the sales or pricing reviewer identify scenarios that require additional attention.",
-            )
+            render_section_header("Quote review flags", "Rule-based warnings that may require sales or supervisor review.")
             for severity, title, explanation in risk_flags(scenario, selected_score, minimum_margin, review_win_threshold):
-                css = "risk-low" if severity == "Low" else ("risk-medium" if severity == "Medium" else "risk-high")
-                st.markdown(
-                    f"<div class='review-flag {css}'><b>{escape(severity)}: {escape(title)}</b><br>{escape(explanation)}</div>",
-                    unsafe_allow_html=True,
-                )
+                render_risk_card(severity, title, explanation)
 
-    with flag_right:
+    with competitor_col:
         with st.container(border=True):
-            render_section_heading(
-                "Competitor Positioning",
-                "Compare the proposed unit price with the available competitor-price benchmarks.",
-            )
+            render_section_header("Competitor positioning", "Compare the proposed unit price with available benchmark prices.")
             competitors = available_competitors(competitor_a, competitor_b, competitor_c)
             if competitors:
-                competitor_values = [competitor_a, competitor_b, competitor_c]
                 competitor_labels = [
-                    f"Competitor {chr(65 + idx)}"
-                    for idx, value in enumerate(competitor_values)
+                    f"Competitor {chr(65 + index)}"
+                    for index, value in enumerate([competitor_a, competitor_b, competitor_c])
                     if pd.notna(value) and value > 0
                 ]
                 chart_data = pd.DataFrame(
                     {
                         "Price reference": ["Proposed unit price"] + competitor_labels,
-                        "Price": [unit_price] + competitors,
+                        "Price": [proposed_unit_price] + competitors,
                     }
                 )
                 fig = px.bar(
@@ -1108,95 +1119,69 @@ elif page == "🎯 Quote Recommender":
                     y="Price",
                     text_auto=",.0f",
                     color="Price reference",
-                    color_discrete_sequence=[COLORS["blue"], COLORS["amber"], COLORS["purple"], COLORS["red"]],
+                    color_discrete_sequence=[BLUE, TEAL, AMBER, PURPLE],
                 )
                 fig.update_layout(showlegend=False)
-                fig.update_traces(textposition="outside")
-                apply_chart_layout(fig, height=330)
-                st.plotly_chart(fig, use_container_width=True)
+                st.plotly_chart(standard_layout(fig, 320), use_container_width=True)
             else:
-                st.warning(
-                    "No competitor benchmark is available for this scenario. Review the recommendation with additional market information."
-                )
+                st.warning("No competitor benchmark is available for this scenario. Review with additional market information.")
 
     with st.expander("View top margin scenarios"):
         display_grid = grid.sort_values("Expected Gross Profit", ascending=False).head(10).copy()
         display_grid["Gross Margin Rate"] = display_grid["Gross Margin Rate"].map(lambda value: f"{value:.0%}")
         display_grid["Win Probability"] = display_grid["Win Probability"].map(lambda value: f"{value:.1%}")
-        display_grid["Unit Price"] = display_grid["Unit Price"].map(currency)
-        display_grid["Gross Profit if Won"] = display_grid["Gross Profit if Won"].map(currency)
-        display_grid["Expected Gross Profit"] = display_grid["Expected Gross Profit"].map(currency)
+        for column in ["Unit Price", "Gross Profit if Won", "Expected Gross Profit"]:
+            display_grid[column] = display_grid[column].map(currency)
         st.dataframe(display_grid, use_container_width=True, hide_index=True)
 
 
 # =============================================================================
-# MARGIN SWEET SPOT
+# PAGE 3 — MARGIN SWEET SPOT
 # =============================================================================
-elif page == "📈 Margin Sweet Spot":
+elif page == "Margin Sweet Spot":
     render_title()
 
     with st.container(border=True):
-        render_section_heading(
+        render_section_header(
             "Gross-Margin Sweet Spot Analysis",
-            "Compare historical conversion performance and expected gross-profit proxy across gross-margin ranges. Product-specific analysis is recommended because one universal threshold may not fit every product.",
+            "Compare historical conversion performance and descriptive expected-gross-profit proxy across margin ranges.",
         )
-        choices = ["All products"] + sorted(data["product"].astype(str).unique().tolist())
-        selected_product = st.selectbox("Filter by product", choices)
+        options = ["All products"] + sorted(data["product"].astype(str).unique().tolist())
+        selected_product = st.selectbox("Filter by product", options)
 
-    if selected_product == "All products":
-        subset = data.drop_duplicates(subset=["quote_id"]).copy()
-    else:
-        subset = data[data["product"] == selected_product].drop_duplicates(subset=["quote_id"]).copy()
+        if selected_product == "All products":
+            subset = data.drop_duplicates(subset=["quote_id"]).copy()
+        else:
+            subset = data[data["product"] == selected_product].drop_duplicates(subset=["quote_id"]).copy()
 
-    summary = (
-        subset.groupby("gmr_band", observed=False)
-        .agg(
-            Quotations=("quote_id", "nunique"),
-            Historical_Win_Rate=("is_win", "mean"),
-            Average_Gross_Profit=("estimated_gross_profit", "mean"),
+        summary = (
+            subset.groupby("gmr_band", observed=False)
+            .agg(
+                Quotations=("quote_id", "nunique"),
+                Historical_Win_Rate=("is_win", "mean"),
+                Average_Gross_Profit=("estimated_gross_profit", "mean"),
+            )
+            .reset_index()
         )
-        .reset_index()
-    )
-    summary["Expected_GP_Proxy"] = summary["Historical_Win_Rate"] * summary["Average_Gross_Profit"]
+        summary["Expected_GP_Proxy"] = summary["Historical_Win_Rate"] * summary["Average_Gross_Profit"]
 
-    best_win_idx = summary["Historical_Win_Rate"].fillna(-1).idxmax()
-    best_gp_idx = summary["Expected_GP_Proxy"].fillna(-np.inf).idxmax()
+        summary_for_metrics = summary.dropna(subset=["Historical_Win_Rate", "Expected_GP_Proxy"])
+        best_win_row = summary_for_metrics.loc[summary_for_metrics["Historical_Win_Rate"].idxmax()]
+        best_gp_row = summary_for_metrics.loc[summary_for_metrics["Expected_GP_Proxy"].idxmax()]
 
-    with st.container(border=True):
-        render_section_heading("Sweet-Spot Summary", "Key descriptive indicators for the selected product filter.")
-        top1, top2, top3 = st.columns(3)
-        with top1:
-            render_metric_card(
-                "Best historical win-rate band",
-                str(summary.loc[best_win_idx, "gmr_band"]),
-                f"Historical win rate: {summary.loc[best_win_idx, 'Historical_Win_Rate']:.1%}",
-                "🏆",
-                "green",
-            )
-        with top2:
-            render_metric_card(
-                "Best expected-GP proxy band",
-                str(summary.loc[best_gp_idx, "gmr_band"]),
-                f"Expected-GP proxy: {summary.loc[best_gp_idx, 'Expected_GP_Proxy']:,.0f}",
-                "💡",
-                "purple",
-            )
-        with top3:
-            render_metric_card(
-                "Selected product filter",
-                selected_product,
-                f"Historical quotations analyzed: {subset['quote_id'].nunique():,}",
-                "📦",
-                "blue",
-            )
+        m1, m2, m3 = st.columns(3)
+        with m1:
+            render_metric_card("Best historical win-rate band", str(best_win_row["gmr_band"]), f"Historical win rate: {best_win_row['Historical_Win_Rate']:.1%}", BLUE, "🎯")
+        with m2:
+            render_metric_card("Best expected-GP band", str(best_gp_row["gmr_band"]), f"Expected-GP proxy: {best_gp_row['Expected_GP_Proxy']:,.0f}", PURPLE, "💡")
+        with m3:
+            render_metric_card("Filtered product", selected_product, f"Quotation records: {int(subset['quote_id'].nunique()):,}", TEAL, "📦")
 
-    chart_left, chart_right = st.columns(2)
-    with chart_left:
+    left, right = st.columns(2)
+
+    with left:
         with st.container(border=True):
-            render_section_heading(
-                "Historical Win Rate by Margin Band",
-                "The different shades emphasize relative conversion performance across gross-margin bands.",
-            )
+            render_section_header("Historical win rate by margin band", "Win-rate distribution across gross-margin intervals.")
             fig = px.bar(
                 summary,
                 x="gmr_band",
@@ -1208,78 +1193,58 @@ elif page == "📈 Margin Sweet Spot":
                 labels={"gmr_band": "Gross Margin Rate", "Historical_Win_Rate": "Historical Win Rate"},
             )
             fig.update_layout(coloraxis_showscale=False, yaxis_tickformat=".0%")
-            fig.update_traces(marker_line_color="#FFFFFF", marker_line_width=1.0, textposition="outside")
-            apply_chart_layout(fig, height=380)
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(standard_layout(fig, 390), use_container_width=True)
 
-    with chart_right:
+    with right:
         with st.container(border=True):
-            render_section_heading(
-                "Historical Expected-GP Proxy",
-                "This descriptive proxy combines historical win rate and average realized gross profit.",
-            )
+            render_section_header("Historical expected-GP proxy", "Descriptive pattern of win-rate-adjusted gross-profit outcomes.")
             fig = go.Figure()
             fig.add_trace(
                 go.Scatter(
-                    x=summary["gmr_band"].astype(str),
+                    x=summary["gmr_band"],
                     y=summary["Expected_GP_Proxy"],
                     mode="lines+markers",
-                    line=dict(color=COLORS["purple"], width=4),
-                    marker=dict(size=10, color="#A78BFA", line=dict(color="#FFFFFF", width=1.2)),
+                    line=dict(color=PURPLE, width=4),
+                    marker=dict(color="#A78BFA", size=10),
                     fill="tozeroy",
-                    fillcolor="rgba(139, 92, 246, 0.14)",
-                    name="Expected GP proxy",
-                    text=summary["Expected_GP_Proxy"].map(lambda value: f"{value:,.0f}" if pd.notna(value) else "N/A"),
-                    hovertemplate="GMR band: %{x}<br>Expected-GP proxy: %{text}<extra></extra>",
+                    fillcolor="rgba(167, 139, 250, 0.18)",
+                    name="Expected GP Proxy",
                 )
             )
-            fig.add_hline(y=0, line_color="#CBD5E1", line_width=1)
-            fig.update_layout(xaxis_title="Gross Margin Rate", yaxis_title="Historical Expected-GP Proxy", showlegend=False)
-            apply_chart_layout(fig, height=380)
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(standard_layout(fig, 390), use_container_width=True)
 
     with st.container(border=True):
-        render_section_heading(
-            "Detailed Sweet-Spot Table",
-            "Use this table to compare the quotation count, historical win rate, average realized gross profit, and expected-GP proxy for each margin band.",
-        )
+        render_section_header("Detailed sweet-spot table", "Use the table as a descriptive benchmark before opening the Quote Recommender page.")
         display_summary = summary.copy()
-        display_summary["Historical_Win_Rate"] = display_summary["Historical_Win_Rate"].map(
-            lambda value: f"{value:.1%}" if pd.notna(value) else "N/A"
-        )
-        display_summary["Average_Gross_Profit"] = display_summary["Average_Gross_Profit"].map(
-            lambda value: f"{value:,.0f}" if pd.notna(value) else "N/A"
-        )
-        display_summary["Expected_GP_Proxy"] = display_summary["Expected_GP_Proxy"].map(
-            lambda value: f"{value:,.0f}" if pd.notna(value) else "N/A"
-        )
+        display_summary["Historical_Win_Rate"] = display_summary["Historical_Win_Rate"].map(lambda value: f"{value:.1%}" if pd.notna(value) else "N/A")
+        display_summary["Average_Gross_Profit"] = display_summary["Average_Gross_Profit"].map(lambda value: currency(value))
+        display_summary["Expected_GP_Proxy"] = display_summary["Expected_GP_Proxy"].map(lambda value: currency(value))
         st.dataframe(display_summary, use_container_width=True, hide_index=True)
-        st.markdown("")
         render_insight(
             "The expected-GP proxy is descriptive. For actionable quote review, use the Quote Recommender page, which simulates margin scenarios while holding estimated cost constant."
         )
 
 
 # =============================================================================
-# COMPETITOR POSITIONING
+# PAGE 4 — COMPETITOR POSITIONING
 # =============================================================================
-elif page == "⚖️ Competitor Positioning":
+elif page == "Competitor Positioning":
     render_title()
 
     with st.container(border=True):
-        render_section_heading(
+        render_section_header(
             "Competitor Positioning Analysis",
-            "Explore how historical win rates vary when the company's unit price is below, approximately aligned with, or above the minimum available competitor benchmark.",
+            "Review how historical win rates vary when company pricing is below, aligned with, or above the minimum available competitor benchmark.",
         )
         render_insight(
-            "Competitor analysis is retrospective. Use competitor information in operational price review only when the benchmark was available before quotation submission."
+            "Competitor analysis is retrospective. Some competitor prices may only become known through customer feedback, so operational use requires information available at the price-review stage."
         )
 
-    comp_data = data[data["min_competitor_price"].notna()].copy()
-    comp_data["price_position"] = np.select(
+    competitor_data = data[data["min_competitor_price"].notna()].copy()
+    competitor_data["price_position"] = np.select(
         [
-            comp_data["price_gap_min_competitor_pct"] < -5,
-            comp_data["price_gap_min_competitor_pct"].between(-5, 5, inclusive="both"),
+            competitor_data["price_gap_min_competitor_pct"] < -5,
+            competitor_data["price_gap_min_competitor_pct"].between(-5, 5, inclusive="both"),
         ],
         ["Below competitor benchmark", "Approximately aligned (±5%)"],
         default="Above competitor benchmark",
@@ -1287,19 +1252,16 @@ elif page == "⚖️ Competitor Positioning":
 
     position_order = ["Below competitor benchmark", "Approximately aligned (±5%)", "Above competitor benchmark"]
     positioning_summary = (
-        comp_data.groupby("price_position")
+        competitor_data.groupby("price_position")
         .agg(Product_Lines=("quote_id", "size"), Historical_Win_Rate=("is_win", "mean"))
         .reindex(position_order)
         .reset_index()
     )
 
-    left, right = st.columns([1.12, 1.0])
+    left, right = st.columns([1.2, 1.0])
     with left:
         with st.container(border=True):
-            render_section_heading(
-                "Historical Win Rate by Price Position",
-                "Compare historical conversion performance relative to the minimum available competitor price.",
-            )
+            render_section_header("Win rate by price position", "Historical tender success by relative pricing position.")
             fig = px.bar(
                 positioning_summary,
                 x="price_position",
@@ -1307,24 +1269,19 @@ elif page == "⚖️ Competitor Positioning":
                 text=positioning_summary["Historical_Win_Rate"].map(lambda value: f"{value:.1%}"),
                 color="price_position",
                 color_discrete_map={
-                    "Below competitor benchmark": COLORS["green"],
-                    "Approximately aligned (±5%)": COLORS["amber"],
-                    "Above competitor benchmark": COLORS["red"],
+                    "Below competitor benchmark": GREEN,
+                    "Approximately aligned (±5%)": AMBER,
+                    "Above competitor benchmark": RED,
                 },
                 hover_data={"Product_Lines": True},
                 labels={"price_position": "Price position", "Historical_Win_Rate": "Historical Win Rate"},
             )
             fig.update_layout(showlegend=False, yaxis_tickformat=".0%")
-            fig.update_traces(textposition="outside")
-            apply_chart_layout(fig, height=365)
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(standard_layout(fig, 360), use_container_width=True)
 
     with right:
         with st.container(border=True):
-            render_section_heading(
-                "Competitor-Information Availability",
-                "Number of available competitor-price benchmarks at the product-line level.",
-            )
+            render_section_header("Competitor-price availability", "Number of benchmark prices available per product line.")
             availability = (
                 data["competitor_count_available"]
                 .value_counts()
@@ -1338,20 +1295,15 @@ elif page == "⚖️ Competitor Positioning":
                 y="Product lines",
                 text_auto=True,
                 color="Available competitor prices",
-                color_continuous_scale=["#CBD5E1", "#60A5FA", "#1D4ED8"],
+                color_continuous_scale=["#EDE9FE", "#8B5CF6", "#5B21B6"],
             )
             fig.update_layout(coloraxis_showscale=False)
-            fig.update_traces(textposition="outside")
-            apply_chart_layout(fig, height=365)
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(standard_layout(fig, 360), use_container_width=True)
 
     with st.container(border=True):
-        render_section_heading(
-            "Product-Level Competitor Positioning",
-            "Only product-position combinations with at least 10 historical observations are shown.",
-        )
+        render_section_header("Product-level competitor positioning", "Only product-position combinations with at least 10 observations are shown.")
         product_position = (
-            comp_data.groupby(["product", "price_position"])
+            competitor_data.groupby(["product", "price_position"])
             .agg(Observations=("quote_id", "size"), Win_Rate=("is_win", "mean"))
             .reset_index()
         )
@@ -1362,177 +1314,163 @@ elif page == "⚖️ Competitor Positioning":
             y="Win_Rate",
             color="price_position",
             barmode="group",
-            color_discrete_map={
-                "Below competitor benchmark": COLORS["green"],
-                "Approximately aligned (±5%)": COLORS["amber"],
-                "Above competitor benchmark": COLORS["red"],
-            },
             hover_data={"Observations": True, "Win_Rate": ":.1%"},
+            color_discrete_map={
+                "Below competitor benchmark": GREEN,
+                "Approximately aligned (±5%)": AMBER,
+                "Above competitor benchmark": RED,
+            },
             labels={"product": "Product", "Win_Rate": "Historical Win Rate", "price_position": "Price position"},
         )
         fig.update_layout(yaxis_tickformat=".0%")
-        apply_chart_layout(fig, height=440)
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(standard_layout(fig, 390), use_container_width=True)
 
 
 # =============================================================================
-# DATA QUALITY AND MODEL NOTES
+# PAGE 5 — DATA QUALITY AND MODEL NOTES
 # =============================================================================
 else:
     render_title()
     quote_counts = data.groupby("quote_id").size()
 
     with st.container(border=True):
-        render_section_heading(
+        render_section_header(
             "Data Quality & Model Notes",
-            "A structured overview of cleaned data, model validation, interpretation boundaries, and recommended next data improvements.",
+            "A structured overview of cleaned data, validation results, interpretation boundaries, and data-improvement priorities.",
         )
-        r1, r2, r3, r4 = st.columns(4)
-        with r1:
-            render_metric_card("Clean product-line records", f"{len(data):,}", "After preprocessing safeguards", "🧹", "blue")
-        with r2:
-            render_metric_card("Unique Quote IDs", f"{data['quote_id'].nunique():,}", "Quotation-level identifiers", "🧾", "teal")
-        with r3:
-            render_metric_card("Multi-line Quote IDs", f"{(quote_counts > 1).sum():,}", "Quotes with multiple retained lines", "🧩", "purple")
-        with r4:
-            render_metric_card("Negative-margin records", f"{(data['gross_margin_rate'] < 0).sum():,}", "Retained as valid business cases", "⚠️", "amber")
+        q1, q2, q3, q4 = st.columns(4)
+        with q1:
+            render_metric_card("Clean product-line records", f"{len(data):,}", "Records after preprocessing safeguards", BLUE, "🧹")
+        with q2:
+            render_metric_card("Unique Quote IDs", f"{data['quote_id'].nunique():,}", "Quotation-level unique identifiers", TEAL, "🧾")
+        with q3:
+            render_metric_card("Multi-line Quote IDs", f"{(quote_counts > 1).sum():,}", "Quotes with multiple product-line records", PURPLE, "🧩")
+        with q4:
+            render_metric_card("Negative-margin records", f"{(data['gross_margin_rate'] < 0).sum():,}", "Retained as valid strategic cases", AMBER, "⚠️")
 
-    left, right = st.columns([1.0, 1.12])
+    left, right = st.columns([1.05, 1.0])
 
     with left:
         with st.container(border=True):
-            render_section_heading(
-                "Competitor-Information Completeness",
-                "Missing competitor-price records indicate limited historical benchmark availability.",
-            )
+            render_section_header("Competitor-information completeness", "Historical missingness affects how competitor variables should be used operationally.")
             missing_raw = pd.DataFrame(
                 {
                     "Field": ["Competitor A", "Competitor B", "Competitor C"],
                     "Missing records": [
-                        data["competitor_a"].isna().sum(),
-                        data["competitor_b"].isna().sum(),
-                        data["competitor_c"].isna().sum(),
+                        int(data["competitor_a"].isna().sum()),
+                        int(data["competitor_b"].isna().sum()),
+                        int(data["competitor_c"].isna().sum()),
                     ],
-                    "Missing rate value": [
-                        data["competitor_a"].isna().mean(),
-                        data["competitor_b"].isna().mean(),
-                        data["competitor_c"].isna().mean(),
+                    "Missing rate": [
+                        float(data["competitor_a"].isna().mean()),
+                        float(data["competitor_b"].isna().mean()),
+                        float(data["competitor_c"].isna().mean()),
                     ],
                 }
             )
-            missing_raw["Missing rate"] = missing_raw["Missing rate value"].map(lambda value: f"{value:.1%}")
             fig = px.bar(
                 missing_raw,
-                x="Missing rate value",
+                x="Missing rate",
                 y="Field",
                 orientation="h",
-                text="Missing rate",
+                text=missing_raw["Missing rate"].map(lambda value: f"{value:.1%}"),
                 color="Field",
-                color_discrete_map={
-                    "Competitor A": COLORS["blue"],
-                    "Competitor B": COLORS["purple"],
-                    "Competitor C": COLORS["red"],
-                },
-                hover_data={"Missing records": True, "Missing rate value": ":.1%"},
-                labels={"Missing rate value": "Missing rate"},
+                color_discrete_map={"Competitor A": BLUE, "Competitor B": PURPLE, "Competitor C": RED},
             )
             fig.update_layout(showlegend=False, xaxis_tickformat=".0%")
-            fig.update_traces(textposition="outside")
-            apply_chart_layout(fig, height=290)
-            st.plotly_chart(fig, use_container_width=True)
-            st.dataframe(missing_raw[["Field", "Missing records", "Missing rate"]], use_container_width=True, hide_index=True)
+            st.plotly_chart(standard_layout(fig, 250), use_container_width=True)
+
+            display_missing = missing_raw.copy()
+            display_missing["Missing rate"] = display_missing["Missing rate"].map(lambda value: f"{value:.1%}")
+            st.dataframe(display_missing, use_container_width=True, hide_index=True)
 
     with right:
         with st.container(border=True):
-            render_section_heading(
-                "Model Validation Summary",
-                "The explainable logistic-regression baseline is evaluated with a Quote-ID-aware holdout split. Product lines from the same quotation do not appear in both training and test sets.",
-            )
-            mcols = st.columns(3)
+            render_section_header("Model validation summary", "Quote-ID-aware holdout evaluation for the explainable logistic-regression baseline.")
             metric_items = list(model_metrics.items())
-            for idx, (name, value) in enumerate(metric_items):
-                with mcols[idx % 3]:
-                    render_metric_card(name, f"{value:.3f}", "Holdout evaluation metric", "📐", ["blue", "teal", "purple"][idx % 3])
-                    st.markdown("")
+            row1 = st.columns(3)
+            row2 = st.columns(3)
+            accents = [BLUE, PURPLE, TEAL, AMBER, GREEN, ORANGE]
+            icons = ["📈", "📊", "✅", "🎯", "🔍", "⚖️"]
+            for index, ((name, value), accent, icon) in enumerate(zip(metric_items, accents, icons)):
+                target_column = row1[index] if index < 3 else row2[index - 3]
+                with target_column:
+                    render_metric_card(name, f"{value:.3f}", "Holdout evaluation metric", accent, icon, compact=True)
 
-    info_left, info_right = st.columns([1.0, 1.0])
-    with info_left:
+    lower_left, lower_right = st.columns([1.0, 1.0])
+
+    with lower_left:
         with st.container(border=True):
-            render_section_heading(
-                "Confusion Matrix",
-                "The heatmap shows how many historical holdout observations were classified correctly and incorrectly.",
-            )
-            cm_df = pd.DataFrame(confusion, index=["Actual Loss", "Actual Win"], columns=["Predicted Loss", "Predicted Win"])
-            heatmap = go.Figure(
+            render_section_header("Confusion matrix", "Classification outcomes using a 0.50 decision threshold.")
+            confusion_df = pd.DataFrame(confusion, index=["Actual Loss", "Actual Win"], columns=["Predicted Loss", "Predicted Win"])
+            fig = go.Figure(
                 data=go.Heatmap(
-                    z=cm_df.values,
-                    x=cm_df.columns,
-                    y=cm_df.index,
-                    text=cm_df.values,
+                    z=confusion_df.values,
+                    x=confusion_df.columns,
+                    y=confusion_df.index,
+                    text=confusion_df.values,
                     texttemplate="%{text}",
                     textfont={"size": 18},
-                    colorscale=[[0, "#EFF6FF"], [1, "#2563EB"]],
+                    colorscale="Blues",
                     showscale=False,
-                    hovertemplate="%{y}<br>%{x}<br>Records: %{z}<extra></extra>",
                 )
             )
-            heatmap.update_layout(xaxis_title="Predicted class", yaxis_title="Actual class")
-            apply_chart_layout(heatmap, height=310)
-            st.plotly_chart(heatmap, use_container_width=True)
+            st.plotly_chart(standard_layout(fig, 285), use_container_width=True)
 
-    with info_right:
+    with lower_right:
         with st.container(border=True):
-            render_section_heading(
-                "Model Design Safeguards",
-                "The current prototype includes safeguards based on the interview clarification and the exploratory data review.",
-            )
-            render_note_html(
+            render_section_header("Model safeguards", "Safeguards applied before model training and dashboard use.")
+            st.markdown(
                 """
-                <ul>
-                    <li>Records are separated by <b>Quote ID</b> during holdout evaluation.</li>
-                    <li>Each Quote ID is weighted equally during model training.</li>
-                    <li>Quantity values less than or equal to zero are excluded.</li>
-                    <li>Negative gross-margin records are retained as valid business cases.</li>
-                    <li>Missing competitor prices are not replaced with zero.</li>
-                    <li>The highest unit price is retained for repeated Quote ID–product combinations following the interview guidance on price-list updates.</li>
-                </ul>
-                """
+                <div class='soft-box'>
+                    <ul>
+                        <li>Training and holdout records are separated by <b>Quote ID</b>.</li>
+                        <li>Each Quote ID is weighted equally during model training.</li>
+                        <li>Quantity values less than or equal to zero are excluded as system errors.</li>
+                        <li>Negative gross margins are retained as valid strategic business cases.</li>
+                        <li>Missing competitor values are not replaced with zero.</li>
+                        <li>For repeated Quote ID + Product records, the highest unit price is retained following interview guidance.</li>
+                    </ul>
+                </div>
+                """,
+                unsafe_allow_html=True,
             )
 
-    note_left, note_right = st.columns(2)
-    with note_left:
+    notes_left, notes_right = st.columns(2)
+
+    with notes_left:
         with st.container(border=True):
-            render_section_heading(
-                "Important Interpretation Notes",
-                "Use these boundaries when presenting and interpreting the dashboard output.",
-            )
-            render_note_html(
+            render_section_header("Important interpretation notes", "Boundaries for responsible interpretation of the dashboard output.")
+            st.markdown(
                 """
-                <ul>
-                    <li>The dashboard estimates <b>associations</b>, not causal effects.</li>
-                    <li>The primary use case is <b>during price review</b>, before quotation submission.</li>
-                    <li>The dashboard operates at the <b>product-line price-review level</b>.</li>
-                    <li>A quotation containing multiple products still requires managerial review at the full quotation level.</li>
-                    <li>Competitor-price analysis should be used operationally only when the information was available before the tender outcome.</li>
-                    <li>The recommendation supports managerial judgement; it is not an automated pricing decision.</li>
-                </ul>
-                """
+                <div class='soft-box'>
+                    <ul>
+                        <li>The dashboard estimates <b>associations</b>, not causal effects.</li>
+                        <li>The primary use case is <b>during price review</b>, before quotation submission.</li>
+                        <li>The recommender works at the <b>product-line price-review level</b>.</li>
+                        <li>Multi-product quotations still require managerial review at the full quotation level.</li>
+                        <li>Competitor-price fields should only be used operationally when available before the decision.</li>
+                        <li>The recommendation supports judgement; it does not automate commercial approval.</li>
+                    </ul>
+                </div>
+                """,
+                unsafe_allow_html=True,
             )
 
-    with note_right:
+    with notes_right:
         with st.container(border=True):
-            render_section_heading(
-                "Recommended Next Data Improvements",
-                "These additions would strengthen the accuracy, interpretability, and business usefulness of future dashboard versions.",
-            )
-            render_note_html(
+            render_section_header("Recommended next data improvements", "Additional fields that would strengthen future model usefulness.")
+            st.markdown(
                 """
-                <ol>
-                    <li>Add quotation timestamps and revision numbers to distinguish price updates from product-line records.</li>
-                    <li>Record whether competitor prices were known before quotation submission or learned after the tender result.</li>
-                    <li>Add customer segment, salesperson, region, and customer-history variables.</li>
-                    <li>Add full quotation-level identifiers and product-line identifiers.</li>
-                    <li>Record the final commercial reason for each won or lost tender when available.</li>
-                </ol>
-                """
+                <div class='soft-box'>
+                    <ol>
+                        <li>Add quotation timestamps and revision numbers.</li>
+                        <li>Record whether competitor prices were known before submission or learned after the tender result.</li>
+                        <li>Add customer segment, salesperson, region, and customer-history variables.</li>
+                        <li>Add explicit full-quotation and product-line identifiers.</li>
+                        <li>Record the final commercial reason for a won or lost tender when available.</li>
+                    </ol>
+                </div>
+                """,
+                unsafe_allow_html=True,
             )
