@@ -20,7 +20,7 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-APP_VERSION = "v3.7.0"
+APP_VERSION = "v3.8.0"
 LAST_UPDATED = "2026-06-12"
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -1691,7 +1691,7 @@ else:
     with st.container(border=True):
         render_section_header(
             "Model Notes & Data Quality",
-            "A structured overview of cleaned data, model validation results, interpretation boundaries, and data-improvement priorities.",
+            "A structured overview of cleaned data, model validation results, and interpretation boundaries.",
         )
         q1, q2, q3, q4 = st.columns(4)
         with q1:
@@ -1703,10 +1703,54 @@ else:
         with q4:
             render_metric_card("Negative-margin records", f"{(data['gross_margin_rate'] < 0).sum():,}", "Retained as valid strategic cases", AMBER, "⚠️")
 
-    left, right = st.columns([1.05, 1.0])
+    # -------------------------------------------------------------------------
+    # Model validation summary — full-width layout to avoid cramped metric cards
+    # -------------------------------------------------------------------------
+    with st.container(border=True):
+        render_section_header(
+            "Model validation summary",
+            "Stratified 5-fold cross-validation for the final HistGradientBoosting win-probability model.",
+        )
+
+        headline_keys = ["Accuracy", "Precision (Win)", "Recall (Win)", "F1 (Win)"]
+        headline_cols = st.columns(4)
+        headline_accents = [BLUE, GREEN, AMBER, PURPLE]
+        headline_icons = ["📈", "🎯", "🔍", "⚖️"]
+        for col, key, accent, icon in zip(headline_cols, headline_keys, headline_accents, headline_icons):
+            with col:
+                render_metric_card(key, f"{model_metrics.get(key, np.nan):.3f}", "Mean across 5 folds", accent, icon, compact=True)
+
+        metric_order = [
+            ("Accuracy", "Overall correct classification rate"),
+            ("Precision (Win)", "Reliability when the model predicts Success"),
+            ("Recall (Win)", "Share of actual Success records captured"),
+            ("F1 (Win)", "Balance between precision and recall"),
+            ("Brier Score", "Probability calibration error; lower is better"),
+            ("ROC-AUC", "Class separation across thresholds"),
+            ("PR-AUC", "Performance under class imbalance"),
+            ("Log Loss", "Probability error penalty; lower is better"),
+        ]
+        metric_table = pd.DataFrame(
+            [
+                {
+                    "Metric": metric,
+                    "Value": model_metrics.get(metric, np.nan),
+                    "Interpretation": meaning,
+                }
+                for metric, meaning in metric_order
+            ]
+        )
+        metric_display = metric_table.copy()
+        metric_display["Value"] = metric_display["Value"].map(lambda value: "N/A" if pd.isna(value) else f"{value:.3f}")
+        st.dataframe(metric_display, use_container_width=True, hide_index=True)
+
+    # -------------------------------------------------------------------------
+    # Data completeness and confusion matrix
+    # -------------------------------------------------------------------------
+    left, right = st.columns([1.0, 1.15])
     with left:
         with st.container(border=True):
-            render_section_header("Competitor-information completeness", "Historical missingness affects how competitor variables should be used operationally.")
+            render_section_header("Competitor-information completeness", "Missingness of competitor benchmark fields in the cleaned data.")
             missing_raw = pd.DataFrame(
                 {
                     "Field": ["Competitor A", "Competitor B", "Competitor C"],
@@ -1732,7 +1776,7 @@ else:
                 color_discrete_map={"Competitor A": BLUE, "Competitor B": PURPLE, "Competitor C": RED},
             )
             fig.update_layout(showlegend=False, xaxis_tickformat=".0%")
-            st.plotly_chart(standard_layout(fig, 250), use_container_width=True)
+            st.plotly_chart(standard_layout(fig, 300), use_container_width=True)
 
             display_missing = missing_raw.copy()
             display_missing["Missing rate"] = display_missing["Missing rate"].map(lambda value: f"{value:.1%}")
@@ -1740,45 +1784,44 @@ else:
 
     with right:
         with st.container(border=True):
-            render_section_header("Model validation summary", "Stratified 5-fold cross-validation for the final HistGradientBoosting win-probability model.")
-            metric_items = list(model_metrics.items())
-            row1 = st.columns(4)
-            row2 = st.columns(4)
-            accents = [BLUE, PURPLE, TEAL, AMBER, GREEN, ORANGE, SKY, SLATE]
-            icons = ["📈", "🎯", "🔍", "⚖️", "✅", "📊", "📉", "🧮"]
-            for index, ((name, value), accent, icon) in enumerate(zip(metric_items, accents, icons)):
-                target_column = row1[index] if index < 4 else row2[index - 4]
-                with target_column:
-                    render_metric_card(name, f"{value:.3f}", "5-fold CV metric", accent, icon, compact=True)
+            render_section_header("Confusion matrix", "Aggregated 5-fold CV outcomes using a 0.50 decision threshold.")
+            confusion_df = pd.DataFrame(
+                confusion,
+                index=["Actual Fail", "Actual Success"],
+                columns=["Predicted Fail", "Predicted Success"],
+            )
 
-    lower_left, lower_right = st.columns([1.0, 1.0])
-    with lower_left:
-        with st.container(border=True):
-            render_section_header("Confusion matrix", "Aggregated 5-fold CV classification outcomes using a 0.50 decision threshold.")
-            confusion_df = pd.DataFrame(confusion, index=["Actual Fail", "Actual Success"], columns=["Predicted Fail", "Predicted Success"])
-            text = confusion_df.copy().astype(str)
-            actual_fail_total = confusion_df.loc["Actual Fail"].sum()
-            actual_success_total = confusion_df.loc["Actual Success"].sum()
-            if actual_fail_total:
-                text.loc["Actual Fail"] = [f"{v}<br>{v / actual_fail_total:.2%}" for v in confusion_df.loc["Actual Fail"]]
-            if actual_success_total:
-                text.loc["Actual Success"] = [f"{v}<br>{v / actual_success_total:.2%}" for v in confusion_df.loc["Actual Success"]]
+            cm_display = confusion_df.copy().astype(str)
+            for actual_label in cm_display.index:
+                row_total = confusion_df.loc[actual_label].sum()
+                if row_total:
+                    cm_display.loc[actual_label] = [
+                        f"{int(value):,} ({value / row_total:.1%})"
+                        for value in confusion_df.loc[actual_label]
+                    ]
+            cm_display.insert(0, "Actual class", cm_display.index)
+            st.dataframe(cm_display.reset_index(drop=True), use_container_width=True, hide_index=True)
+            st.caption("Percentages are calculated within each actual class.")
+
             fig = go.Figure(
                 data=go.Heatmap(
                     z=confusion_df.values,
                     x=confusion_df.columns,
                     y=confusion_df.index,
-                    text=text.values,
+                    text=cm_display.drop(columns=["Actual class"]).values,
                     texttemplate="%{text}",
-                    textfont={"size": 17},
+                    textfont={"size": 16},
                     colorscale="Blues",
                     showscale=False,
                 )
             )
-            st.plotly_chart(standard_layout(fig, 310), use_container_width=True)
-            st.caption("Percentages are calculated within each actual class.")
+            st.plotly_chart(standard_layout(fig, 260), use_container_width=True)
 
-    with lower_right:
+    # -------------------------------------------------------------------------
+    # Safeguards and interpretation notes
+    # -------------------------------------------------------------------------
+    notes_left, notes_right = st.columns(2)
+    with notes_left:
         with st.container(border=True):
             render_section_header("Model safeguards", "Safeguards applied before model training and dashboard use.")
             st.markdown(
@@ -1797,10 +1840,9 @@ else:
                 unsafe_allow_html=True,
             )
 
-    notes_left, notes_right = st.columns(2)
-    with notes_left:
+    with notes_right:
         with st.container(border=True):
-            render_section_header("Important interpretation notes", "Boundaries for responsible interpretation of the dashboard output.")
+            render_section_header("Important interpretation notes", "Boundaries for responsible interpretation of dashboard output.")
             st.markdown(
                 """
                 <div class='soft-box'>
@@ -1817,30 +1859,40 @@ else:
                 unsafe_allow_html=True,
             )
 
-    with notes_right:
-        with st.container(border=True):
-            render_section_header("Recommended next data improvements", "Additional fields that would strengthen future model usefulness.")
-            st.markdown(
-                """
-                <div class='soft-box'>
-                    <ol>
-                        <li>Add quotation timestamps and revision numbers.</li>
-                        <li>Record whether competitor prices were known before submission or learned after the tender result.</li>
-                        <li>Add customer segment, salesperson, region, and customer-history variables.</li>
-                        <li>Add explicit full-quotation and product-line identifiers.</li>
-                        <li>Record the final commercial reason for a won or lost tender when available.</li>
-                    </ol>
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
-
-    if SHAP_IMAGE_PATH.exists() or SHAP_IMPORTANCE_PATH.exists():
-        with st.container(border=True):
-            render_section_header("Model explanation", "Global feature importance from SHAP output, if available in the asset folder.")
-            if SHAP_IMAGE_PATH.exists():
-                st.image(str(SHAP_IMAGE_PATH), use_container_width=True)
-            elif SHAP_IMPORTANCE_PATH.exists():
-                shap_df = pd.read_csv(SHAP_IMPORTANCE_PATH).head(15)
-                fig = px.bar(shap_df.sort_values("mean_abs_shap"), x="mean_abs_shap", y="feature", orientation="h")
-                st.plotly_chart(standard_layout(fig, 420), use_container_width=True)
+    # -------------------------------------------------------------------------
+    # Model explanation from CSV, not PNG, so visual style remains consistent
+    # -------------------------------------------------------------------------
+    with st.container(border=True):
+        render_section_header(
+            "Model explanation",
+            "Global SHAP feature importance calculated from the saved model output.",
+        )
+        if SHAP_IMPORTANCE_PATH.exists():
+            shap_df = pd.read_csv(SHAP_IMPORTANCE_PATH).copy()
+            if {"feature", "mean_abs_shap"}.issubset(shap_df.columns):
+                top_n = min(15, len(shap_df))
+                shap_plot = shap_df.sort_values("mean_abs_shap", ascending=False).head(top_n).copy()
+                shap_plot["Feature"] = (
+                    shap_plot["feature"]
+                    .astype(str)
+                    .str.replace("_", " ", regex=False)
+                    .str.replace("pct", "%", regex=False)
+                    .str.title()
+                )
+                shap_plot = shap_plot.sort_values("mean_abs_shap", ascending=True)
+                fig = px.bar(
+                    shap_plot,
+                    x="mean_abs_shap",
+                    y="Feature",
+                    orientation="h",
+                    text=shap_plot["mean_abs_shap"].map(lambda value: f"{value:.3f}"),
+                    labels={"mean_abs_shap": "Mean absolute SHAP value", "Feature": "Feature"},
+                )
+                fig.update_traces(marker_color=BLUE, textposition="outside", cliponaxis=False)
+                fig.update_layout(showlegend=False, margin=dict(l=10, r=45, t=20, b=10))
+                st.plotly_chart(standard_layout(fig, max(460, top_n * 32)), use_container_width=True)
+                st.caption("Higher mean absolute SHAP values indicate features with stronger average contribution to the model output.")
+            else:
+                st.info("SHAP CSV was found, but it does not contain the expected 'feature' and 'mean_abs_shap' columns.")
+        else:
+            st.info("SHAP feature-importance CSV was not found in the asset folder.")
